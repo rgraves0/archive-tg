@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-"""
-Archive.org Handler Module
-Handles downloading files directly to a temporary disk path.
-"""
 import asyncio
 import aiohttp
 import logging
@@ -70,6 +65,15 @@ class ArchiveOrgHandler:
         session = await self.get_session()
         download_url = f"{self.base_url}{self.download_endpoint.format(identifier=identifier, filename=filename)}"
         save_path = os.path.join(temp_dir, filename)
+
+        # --- FIX: Create subdirectories if they don't exist ---
+        try:
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        except OSError as exc:
+            logger.error(f"Error creating directory structure for {save_path}: {exc}")
+            return None
+        # ------------------------------------------------------
+
         try:
             async with session.get(download_url) as response:
                 response.raise_for_status()
